@@ -10,9 +10,12 @@ export default function Skills() {
   ];
 
   return (
-    <section className="flex flex-col items-center  bg-gray-100">
+    <section className="flex flex-col items-center py-20  bg-gray-100">
+
+
+      <h1 className="text-black md:text-5xl text-2xl font-bold py-8">My Skills</h1>
       <div
-        className="banner border border-4 border-pink-500 mx-auto px-12"
+        className="banner mx-auto px-12"
         style={{ "--total": skills.length } as React.CSSProperties}
       >
         {skills.map((skill, index) => (
@@ -32,7 +35,7 @@ export default function Skills() {
       </div>
 
       {/* Description Text */}
-      <p className="max-w-2xl text-center text-gray-600 text-lg mt-12 px-2">
+      <p className="max-w-2xl text-center text-gray-600 text-lg px-2">
         I work primarily with modern front-end technologies, building responsive
         and interactive user interfaces using HTML, CSS, and JavaScript. My
         experience with React and Vue allows me to create scalable,

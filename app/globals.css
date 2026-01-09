@@ -35,7 +35,7 @@ body {
   flex-direction: column;
   display: flex;
   width: 80%;
-  height: 80vh;
+  height: 70vh;
 }
 
 .banner .slider {
@@ -66,8 +66,8 @@ body {
 
 @keyframes autoRun {
  from {
-  transform:  perspective(1000px) rotateX(5deg) rotateY(0deg);
+  transform:  perspective(1000px) rotateX(-14deg) rotateY(0deg);
  } to {
-   transform:  perspective(1000px) rotateX(-40deg) rotateY(360deg);
+   transform:  perspective(1000px) rotateX(-14deg) rotateY(360deg);
  }
 }
