@@ -19,24 +19,17 @@ export default function Home() {
       </section>
 
       {/* Content below */}
-      <section className="min-h-screen  border border-4 border-red-500">
+      <section className="min-h-screen   border border-4 border-red-500">
 
         <Skills />
+
+  
         <About />
           <About />
             <About />
               <About />
                 <About />
-                  <About />
-                    <About />
-                      <About />
-                        <About />
-                          <About />
-                            <About />
-
-                              <About />
-                                <About />
-                                  <About />
+            
         {/* <p className="text-xl">Scroll content here</p> */}
       </section>
     </>

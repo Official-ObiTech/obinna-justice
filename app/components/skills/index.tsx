@@ -12,7 +12,7 @@ export default function Skills() {
   return (
     <section className="flex flex-col items-center  bg-gray-100">
       <div
-        className="banner border border-4 border-pink-500"
+        className="banner border border-4 border-pink-500 mx-auto px-12"
         style={{ "--total": skills.length } as React.CSSProperties}
       >
         {skills.map((skill, index) => (
@@ -21,15 +21,18 @@ export default function Skills() {
             className="slider "
             style={{ "--i": index + 1 } as React.CSSProperties}
           >
-            <div className="item h-52 w-44 bg-black rounded-xl ">
-              <img src={skill.image} alt={skill.name} />
-              <h6 className="mt-4 text-white">{skill.name}</h6>
+            <div               className="item absolute w-44  h-48 bg-black rounded-xl p-2 flex flex-col items-center justify-center">
+              <img  className="w-24 h-24 object-contain" src={skill.image} alt={skill.name} />
+            <h6 className="mt-2 text-white text-xs font-semibold text-center px-1">
+                {skill.name}
+              </h6>
             </div>
           </div>
         ))}
       </div>
 
-      <p className="max-w-2xl text-center text-gray-600 text-lg">
+      {/* Description Text */}
+      <p className="max-w-2xl text-center text-gray-600 text-lg mt-12 px-2">
         I work primarily with modern front-end technologies, building responsive
         and interactive user interfaces using HTML, CSS, and JavaScript. My
         experience with React and Vue allows me to create scalable,
