@@ -1,79 +1,44 @@
+import Link from "next/link";
+import { projects } from "../../data";
+import ProjectCard from "../project-card";
+import ProjectsBackground from "../ProjectsBackground";
+import SectionHeading from "../section-heading";
+import { ArrowRight } from "../icons/arrows";
 
+// How many projects the home page shows before "View all projects".
+const HOME_PROJECT_COUNT = 4;
 
 export default function Projects() {
-  const projects = [
-    {
-      id: 1,
-      name: "Master Builder",
-      description: "A construction-based platform that handles government roads, houses, and bridges.",
-      tools: ["Nuxt.js", "Tailwind CSS", "TypeScript", "NuxtUI"],
-      img: "/master-builder.jpg", // ⚠️ Replace with real image; /css.svg is not appropriate
-      contributors: ["Obinna", "Emake"],
-      link: "https://app.skaldongroup.com", // trimmed extra spaces
-      company: "Swizel TLD",
-    },
-    {
-      id: 2, // ✅ Must be unique!
-      name: "Punel",
-      description: "A real-estate platform for purchasing and investing in land and property.",
-      tools: ["Next.js", "Tailwind CSS", "TypeScript", "NuxtUI", "GraphQL"],
-      img: "/punel.jpg", // ⚠️ Use real image
-      contributors: ["Obinna", "Emake"],
-      link: "https://punel.com", // ✅ Fixed typo (.coom → .com) and removed spaces
-      company: "VeryDeepTech TLD",
-    },
-  ];
-
   return (
-    <div className="bg-black py-20 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-8">
-        {projects.map((project) => (
-          <a
-            key={project.id}
-            href={project.link}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="block rounded-2xl bg-slate-100 p-5 transition-all duration-300 hover:scale-[1.02] hover:shadow-xl"
-          >
-            <div className="flex items-start gap-4">
-              <div className="bg-gray-300 border border-gray-400 rounded-lg w-16 h-16 flex items-center justify-center">
-                <img
-                  src={project.img}
-                  alt={project.name}
-                  className="w-10 h-10 object-contain"
-                //   onError={(e) => {
-                //     e.currentTarget.parentElement!.innerHTML = '🖼️'; // fallback icon
-                //   }}
-                />
-              </div>
-              <div>
-                <h2 className="text-lg font-bold text-gray-900">{project.name}</h2>
-                <p className="text-sm text-gray-700 mt-1">{project.description}</p>
-              </div>
-            </div>
+    <section id="projects" className="relative isolate overflow-hidden px-4 pb-24 sm:px-6 md:pb-32">
+      <ProjectsBackground />
+      <div className="reveal mx-auto max-w-6xl">
+        {/* Heading band with the 3D phones behind it */}
+        <div className="pb-16 pt-24 md:min-h-[440px] md:pt-40">
+          <SectionHeading index="04" eyebrow="Projects" title="Selected work" />
+          <p className="-mt-6 max-w-xl text-lg leading-relaxed text-muted md:-mt-8">
+            Mobile apps and web platforms I’ve built. Open a project to see what it does, the tech behind it and screenshots.
+          </p>
+        </div>
 
-            <div className="mt-4 space-y-2">
-              <p className="text-xs text-gray-600">
-                <span className="font-medium">Built with:</span> {project.tools.join(", ")}
-              </p>
-              <p className="text-xs text-gray-600">
-                <span className="font-medium">Company:</span> {project.company}
-              </p>
-              <div>
-                <span className="text-xs font-medium text-gray-500 mr-2">Team:</span>
-                {project.contributors.map((name, idx) => (
-                  <span
-                    key={idx}
-                    className="inline-block bg-gray-200 text-gray-800 text-xs px-2 py-1 rounded mr-1"
-                  >
-                    {name}
-                  </span>
-                ))}
-              </div>
-            </div>
-          </a>
-        ))}
+        <div className="grid grid-cols-1 gap-6 md:grid-cols-2 md:gap-8">
+          {projects.slice(0, HOME_PROJECT_COUNT).map((project) => (
+            <ProjectCard key={project.slug} project={project} />
+          ))}
+        </div>
+
+        {projects.length > HOME_PROJECT_COUNT && (
+          <div className="mt-12 flex justify-center">
+            <Link
+              href="/projects"
+              className="group inline-flex h-12 items-center gap-2 rounded-full bg-accent-strong px-7 text-sm font-semibold text-white transition-colors hover:bg-accent-strong/85"
+            >
+              View all {projects.length} projects
+              <ArrowRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" />
+            </Link>
+          </div>
+        )}
       </div>
-    </div>
+    </section>
   );
 }

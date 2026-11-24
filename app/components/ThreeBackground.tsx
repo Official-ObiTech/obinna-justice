@@ -3,18 +3,25 @@
 import { useEffect, useRef } from "react";
 import * as THREE from "three";
 import { OrbitControls } from "three/addons/controls/OrbitControls.js";
+import { onThemeChange, themeColor, type Theme } from "./theme";
 
 export default function ThreeBackground() {
   const mountRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
-    if (!mountRef.current) return;
+    const mount = mountRef.current;
+    if (!mount) return;
 
-    let camera: THREE.PerspectiveCamera;
-    let scene: THREE.Scene;
     let renderer: THREE.WebGLRenderer;
-    let pointLight: THREE.PointLight;
-    let pointLight2: THREE.PointLight;
+    try {
+      renderer = new THREE.WebGLRenderer({ antialias: true });
+    } catch {
+      // No WebGL available, so the hero's plain background stays visible instead.
+      return;
+    }
+
+    // Everything created on the GPU, so it can be freed on unmount.
+    const disposables: { dispose(): void }[] = [];
 
     function generateTexture() {
       const canvas = document.createElement("canvas");
@@ -34,59 +41,75 @@ export default function ThreeBackground() {
       texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
       texture.repeat.set(1, 4.5);
 
-      const glow = new THREE.Mesh(
-        new THREE.SphereGeometry(2, 32, 8),
-        new THREE.MeshPhongMaterial({
-          side: THREE.DoubleSide,
-          alphaMap: texture,
-          alphaTest: 0.5,
-        })
-      );
+      const geometry = new THREE.SphereGeometry(2, 32, 8);
+      const material = new THREE.MeshPhongMaterial({
+        side: THREE.DoubleSide,
+        alphaMap: texture,
+        alphaTest: 0.5,
+      });
+      disposables.push(texture, geometry, material);
 
-      light.add(glow);
+      light.add(new THREE.Mesh(geometry, material));
       return light;
     }
 
     // Scene
-    scene = new THREE.Scene();
-    scene.add(new THREE.AmbientLight(0x111122, 3));
+    const scene = new THREE.Scene();
+    const ambient = new THREE.AmbientLight(0x111122, 3);
+    scene.add(ambient);
 
-    camera = new THREE.PerspectiveCamera(
-      35,
-      window.innerWidth / window.innerHeight,
-      1,
-      1000
-    );
+    const camera = new THREE.PerspectiveCamera(35, 1, 1, 1000);
     camera.position.set(0, 10, 40);
+    camera.lookAt(0, 0, 0);
 
-    pointLight = createLight(0x0088ff);
-    pointLight2 = createLight(0xff8888);
+    const pointLight = createLight(0x0088ff);
+    const pointLight2 = createLight(0x93c5fd);
     scene.add(pointLight, pointLight2);
 
-    const box = new THREE.Mesh(
-      new THREE.BoxGeometry(30, 30, 30),
-      new THREE.MeshPhongMaterial({
-        color: 0xa0adaf,
-        side: THREE.BackSide,
-      })
-    );
+    const boxGeometry = new THREE.BoxGeometry(30, 30, 30);
+    const boxMaterial = new THREE.MeshPhongMaterial({
+      color: 0xa0adaf,
+      side: THREE.BackSide,
+    });
+    disposables.push(boxGeometry, boxMaterial);
+    const box = new THREE.Mesh(boxGeometry, boxMaterial);
     box.position.y = 10;
     scene.add(box);
 
+    // Dark mode: a dim room lit by the two lights. Light mode: a bright, pale room.
+    function applyTheme(theme: Theme) {
+      const light = theme === "light";
+      renderer.setClearColor(themeColor("--ink"));
+      ambient.color.set(light ? 0xffffff : 0x111122);
+      ambient.intensity = light ? 2.6 : 3;
+      boxMaterial.color.set(light ? 0xdfe5ee : 0xa0adaf);
+    }
+    applyTheme(document.documentElement.dataset.theme === "light" ? "light" : "dark");
+    const stopWatchingTheme = onThemeChange(applyTheme);
+
     // Renderer
-    renderer = new THREE.WebGLRenderer({ antialias: true });
-    renderer.setSize(window.innerWidth, window.innerHeight);
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-    renderer.setClearColor(0x000000);
+    renderer.domElement.style.display = "block";
+    mount.appendChild(renderer.domElement);
 
-    mountRef.current.appendChild(renderer.domElement);
+    // Drag-to-orbit only with a mouse: on touch screens it would block scrolling past the hero.
+    let controls: OrbitControls | null = null;
+    if (window.matchMedia("(pointer: fine)").matches) {
+      controls = new OrbitControls(camera, renderer.domElement);
+      controls.enableZoom = false;
+      controls.enablePan = false;
+      controls.enableDamping = true;
+      controls.minAzimuthAngle = -Math.PI / 4;
+      controls.maxAzimuthAngle = Math.PI / 4;
+      controls.minPolarAngle = Math.PI / 3;
+      controls.maxPolarAngle = Math.PI / 2;
+    }
 
-    const controls = new OrbitControls(camera, renderer.domElement);
-    controls.enableZoom = false;
-    controls.enablePan = false;
+    const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
     function animate(time: number) {
-      time *= 0.001;
+      // With reduced motion the lights hold still at a nice-looking position.
+      time = reduceMotion ? 2 : time * 0.001;
 
       pointLight.position.set(
         Math.sin(time * 0.6) * 9,
@@ -100,31 +123,41 @@ export default function ThreeBackground() {
         Math.sin((time + 10) * 0.8) * 9
       );
 
+      controls?.update();
       renderer.render(scene, camera);
-      renderer.setAnimationLoop(animate);
     }
 
-    renderer.setAnimationLoop(animate);
-
-    function onResize() {
-      camera.aspect = window.innerWidth / window.innerHeight;
+    function resize() {
+      const width = mount!.clientWidth;
+      const height = mount!.clientHeight;
+      camera.aspect = width / height;
+      // Widen the view on portrait screens so the room isn't cropped too tightly.
+      camera.fov = camera.aspect < 1 ? 55 : 35;
       camera.updateProjectionMatrix();
-      renderer.setSize(window.innerWidth, window.innerHeight);
+      renderer.setSize(width, height);
     }
 
-    window.addEventListener("resize", onResize);
+    resize();
+    const resizeObserver = new ResizeObserver(resize);
+    resizeObserver.observe(mount);
+
+    // Only render while the hero is on screen.
+    const visibilityObserver = new IntersectionObserver(([entry]) => {
+      renderer.setAnimationLoop(entry.isIntersecting ? animate : null);
+    });
+    visibilityObserver.observe(mount);
 
     return () => {
-      window.removeEventListener("resize", onResize);
+      stopWatchingTheme();
+      visibilityObserver.disconnect();
+      resizeObserver.disconnect();
+      renderer.setAnimationLoop(null);
+      controls?.dispose();
+      disposables.forEach((d) => d.dispose());
       renderer.dispose();
-      mountRef.current?.removeChild(renderer.domElement);
+      mount.removeChild(renderer.domElement);
     };
   }, []);
 
-  return (
-    <div
-      ref={mountRef}
-      className="fixed inset-0 w-screen h-screen -z-10"
-    />
-  );
+  return <div ref={mountRef} className="absolute inset-0 -z-20" aria-hidden />;
 }

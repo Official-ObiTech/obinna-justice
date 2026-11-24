@@ -1,73 +1,166 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
+/* Theme is chosen by the data-theme attribute on <html> (set before first paint in layout.tsx). */
+@custom-variant light (&:where([data-theme="light"], [data-theme="light"] *));
+@custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
+
+/* ---------- Colour themes ---------- */
+/* The site's single accent colour is blue. To switch to green, use e.g. #22c55e / #16a34a. */
+
+:root,
+[data-theme="dark"] {
+  color-scheme: dark;
+  --ink: #07070b; /* page background */
+  --surface: #0f0f17; /* cards and panels */
+  --surface-2: #14141d; /* raised cards */
+  --fg: #ededf2; /* main text */
+  --muted: #a1a1b5; /* secondary text */
+  --line: rgb(255 255 255 / 0.09); /* borders */
+  --accent: #3b82f6; /* text, icons and details */
+  --accent-strong: #2563eb; /* filled buttons with white text */
+}
+
+[data-theme="light"] {
+  color-scheme: light;
+  --ink: #f6f7f9;
+  --surface: #ffffff;
+  --surface-2: #ffffff;
+  --fg: #0b0d12;
+  --muted: #565c6e;
+  --line: rgb(10 12 20 / 0.1);
+  --accent: #2563eb;
+  --accent-strong: #2563eb;
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  --color-ink: var(--ink);
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
+  --color-fg: var(--fg);
+  --color-muted: var(--muted);
+  --color-line: var(--line);
+  --color-accent: var(--accent);
+  --color-accent-strong: var(--accent-strong);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+html {
+  scroll-padding-top: 5rem;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  html {
+    scroll-behavior: smooth;
   }
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: var(--ink);
+  color: var(--fg);
+  transition: background-color 0.3s ease, color 0.3s ease;
 }
 
+::selection {
+  background: var(--accent-strong);
+  color: #fff;
+}
 
-.banner {
+/* ---------- Hero entrance ---------- */
+
+@keyframes fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .fade-up {
+    animation: fade-up 0.8s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+  }
+}
+
+/* ---------- Sections reveal on scroll (where supported) ---------- */
+
+@keyframes reveal {
+  from {
+    opacity: 0;
+    transform: translateY(28px);
+  }
+}
+
+@supports (animation-timeline: view()) {
+  @media (prefers-reduced-motion: no-preference) {
+    .reveal {
+      animation: reveal linear both;
+      animation-timeline: view();
+      animation-range: entry 0% entry 35%;
+    }
+  }
+}
+
+/* ---------- 3D skills carousel ---------- */
+
+.carousel {
+  --radius: 190px;
+  --card-w: 96px;
+  --card-h: 120px;
   position: relative;
-  overflow: hidden;
-  text-align: center;
-  align-items: center;
-  justify-content: center;
-  flex-direction: column;
-  display: flex;
-  width: 80%;
-  height: 70vh;
-}
-
-.banner .slider {
-  position: absolute;
-  width: 200px;
-  height: 250px;
-  top: 20%;
-  left: calc(50% - 100px);
-  transform-style: preserve-3d;
-  transform: perspective(1000px);
-  animation: autoRun 120s linear infinite;
-}
-
-.banner .slider .item {
-  position: absolute;
-  inset: 0 0 0 0;
-  transform: 
-    rotateY(calc((var(--i) - 1) * (360deg / var(--total))))
-
-    translateZ(450px);
-}
-
-/* .banner .slider .item img {
   width: 100%;
-  height: 100%;
-  object-fit: cover;
-} */
+  height: calc(var(--card-h) * 1.35 + var(--radius) * 0.55);
+  perspective: 1000px;
+}
 
-@keyframes autoRun {
- from {
-  transform:  perspective(1000px) rotateX(-14deg) rotateY(0deg);
- } to {
-   transform:  perspective(1000px) rotateX(-14deg) rotateY(360deg);
- }
+@media (min-width: 768px) {
+  .carousel {
+    --radius: 340px;
+    --card-w: 150px;
+    --card-h: 180px;
+    perspective: 1600px;
+  }
+}
+
+.carousel-ring {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: var(--card-w);
+  height: var(--card-h);
+  margin: calc(var(--card-h) / -2) 0 0 calc(var(--card-w) / -2);
+  transform-style: preserve-3d;
+  transform: rotateX(-14deg);
+  animation: carousel-spin 60s linear infinite;
+}
+
+.carousel:hover .carousel-ring {
+  animation-play-state: paused;
+}
+
+.carousel-item {
+  position: absolute;
+  inset: 0;
+  transform-style: preserve-3d;
+  transform: rotateY(calc(var(--i) * 360deg / var(--total))) translateZ(var(--radius));
+}
+
+/* Each card has two faces so cards on the far side of the ring read the right way round */
+.carousel-face {
+  position: absolute;
+  inset: 0;
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
+}
+
+.carousel-face-back {
+  transform: rotateY(180deg);
+  opacity: 0.4;
+}
+
+@keyframes carousel-spin {
+  from {
+    transform: rotateX(-14deg) rotateY(0deg);
+  }
+  to {
+    transform: rotateX(-14deg) rotateY(-360deg);
+  }
 }
