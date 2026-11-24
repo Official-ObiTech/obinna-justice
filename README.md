@@ -1,36 +1,61 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Obinna Justice | Portfolio
 
-## Getting Started
+Personal portfolio built with Next.js, Tailwind CSS and Three.js. It installs like an app (PWA) and works offline.
 
-First, run the development server:
+- **Home page:** Hero (interactive 3D background) → About → Skills (3D carousel) → Projects → Contact.
+- **Project pages** (`/projects/<slug>`): what the project does, its tech stack, screenshots and a **live preview** that opens the real site inside the portfolio.
+
+## Editing your content
+
+All text, links and projects live in **`app/data.ts`**, so you shouldn't need to touch the components.
+
+| What | Where in `app/data.ts` |
+| --- | --- |
+| Name, role, tagline, email, phone, location, CV | `site` |
+| Social media links | `socials` |
+| About-me paragraphs and quick facts | `about`, `facts` |
+| Work experience | `experience` |
+| Skills carousel and skill groups | `skills` (icons are in `/public/skills`), `skillGroups` |
+| Projects | `projects` |
+
+### CV download
+
+The “Download CV” buttons (menu, hero, About and Contact) serve `public/Justice-Obinna-CV.pdf`. To update your CV, replace that file, or add a new PDF to `/public` and point `site.resume` at it.
+
+### Your photo
+
+Your photo is `public/me.jpg`, shown in the About section and as the round menu logo. To change it, replace that file with another square photo (800×800 works well). Set `site.photo` to `""` to show your initials instead.
+
+### Colours, themes and font
+
+The site has a dark theme (the default) and a light theme, switched with the floating sun/moon button in the bottom-right corner. A visitor’s choice is remembered. Both themes’ colours are at the top of `app/globals.css`; the accent is blue (`--accent` for text and icons, `--accent-strong` for filled buttons). To start in light mode instead, change `DEFAULT_THEME` in `app/components/theme.ts`. The font is Inter, loaded in `app/layout.tsx`.
+
+## Running locally
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
+pnpm install
 pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000).
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+Before deploying, check everything builds:
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```bash
+pnpm lint
+pnpm build
+```
 
-## Learn More
+## PWA (installable app)
 
-To learn more about Next.js, take a look at the following resources:
+- `app/manifest.ts`: app name, colours, icons and install screenshots
+- `public/sw.js`: the service worker. It caches pages as they’re visited so they work offline, and shows `public/offline.html` for pages that haven’t been saved yet. Bump `VERSION` at the top after big changes to clear old caches.
+- `public/icons/` and `app/apple-icon.png`: app icons
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+The service worker only runs in production builds (`pnpm build && pnpm start`) and on HTTPS (or localhost). Visitors on Chrome, Edge and Android see an **Install app** button in the menu; on iPhone they can use Share → Add to Home Screen.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Deploying
 
-## Deploy on Vercel
+The easiest option is [Vercel](https://vercel.com/new): push this folder to a GitHub repository, import it on Vercel, and click Deploy. No settings needed.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+If you use a custom domain, set the `NEXT_PUBLIC_SITE_URL` environment variable (e.g. `https://obinnajustice.com`) so link previews and the sitemap point to the right address.
